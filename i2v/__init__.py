@@ -2,6 +2,13 @@ from i2v.base import Illustration2VecBase
 
 caffe_available = False
 chainer_available = False
+onnx_available = False
+
+try:
+    from i2v.onnx_i2v import ONNXI2V, make_i2v_with_onnx
+    onnx_available = True
+except ImportError:
+    pass
 
 try:
     from i2v.caffe_i2v import CaffeI2V, make_i2v_with_caffe
@@ -15,5 +22,5 @@ try:
 except ImportError:
     pass
 
-if not any([caffe_available, chainer_available]):
-    raise ImportError('i2v requires caffe or chainer package')
+if not any([caffe_available, chainer_available, onnx_available]):
+    raise ImportError('i2v requires caffe, chainer, or onnx package')

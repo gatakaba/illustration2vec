@@ -6,10 +6,6 @@ cd $DIR
 
 echo "Downloading pre-trained models..."
 wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/tag_list.json.gz
-wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec_tag.prototxt
-wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec.prototxt
-wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec_tag_ver200.caffemodel
-wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec_ver200.caffemodel
 wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec_tag_ver200.onnx
 wget https://github.com/kivantium/illustration2vec/releases/download/v2.1.0/illust2vec_ver200.onnx
 gunzip tag_list.json.gz

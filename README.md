@@ -1,24 +1,26 @@
-# Illustration2Vec
+# Illustration2Vec for ONNX
 
 ``illustration2vec (i2v)`` is a simple library for estimating a set of tags and
 extracting semantic feature vectors from given illustrations.
 For details, please see
-[our main paper](https://github.com/rezoo/illustration2vec/raw/master/papers/illustration2vec-main.pdf).
+[the original author's main paper](https://github.com/rezoo/illustration2vec/raw/master/papers/illustration2vec-main.pdf).
+
+Unfortunately, Caffe and Chainer is in maintenance phase as of 2020.
+This unofficial fork adds support for ONNX.
 
 # Requirements
 
 * Pre-trained models (``i2v`` uses Convolutional Neural Networks. Please download
   several pre-trained models from
-  [here](https://github.com/rezoo/illustration2vec/releases),
+  [here](https://github.com/kivantium/illustration2vec/releases),
   or execute ``get_models.sh`` in this repository).
 * ``numpy`` and ``scipy``
 * ``PIL`` (Python Imaging Library) or its alternatives (e.g., ``Pillow``) 
 * ``skimage`` (Image processing library for python)
 
 In addition to the above libraries and the pre-trained models, `i2v` requires
-either ``caffe`` or ``chainer`` library. If you are not familiar with deep
-learning libraries, we recommend to use ``chainer`` that can be installed
-via ``pip`` command.
+either ``caffe``, ``chainer``, or ``onnxruntime`` library. Since ``caffe`` and ``chainer`` is in maintainance phase, I recommend to use ``onnxruntime``.
+Please refer to [the readme of ONNX Runtime](https://github.com/microsoft/onnxruntime) about installation.
 
 # How to use
 
@@ -39,9 +41,14 @@ in the following manner.
 ```python
 import i2v
 from PIL import Image
+from pprint import pprint
 
-illust2vec = i2v.make_i2v_with_chainer(
-    "illust2vec_tag_ver200.caffemodel", "tag_list.json")
+illust2vec = i2v.make_i2v_with_onnx(
+    "illust2vec_tag_ver200.onnx", "tag_list.json")
+
+# If you use chainer, please use i2v.make_i2v_with_chainer instead:
+# illust2vec = i2v.make_i2v_with_chainer(
+#    "illust2vec_tag_ver200.caffemodel", "tag_list.json")
 
 # In the case of caffe, please use i2v.make_i2v_with_caffe instead:
 # illust2vec = i2v.make_i2v_with_caffe(
@@ -49,28 +56,28 @@ illust2vec = i2v.make_i2v_with_chainer(
 #     "tag_list.json")
 
 img = Image.open("images/miku.jpg")
-illust2vec.estimate_plausible_tags([img], threshold=0.5)
+pprint(illust2vec.estimate_plausible_tags([img], threshold=0.5))
 ```
 
 ``estimate_plausible_tags()`` returns dictionaries that have a pair of
 tag and its confidence.
 ```python
-[{'character': [(u'hatsune miku', 0.9999994039535522)],
-  'copyright': [(u'vocaloid', 0.9999998807907104)],
-  'general': [(u'thighhighs', 0.9956372380256653),
-   (u'1girl', 0.9873462319374084),
-   (u'twintails', 0.9812833666801453),
-   (u'solo', 0.9632901549339294),
-   (u'aqua hair', 0.9167950749397278),
-   (u'long hair', 0.8817108273506165),
-   (u'very long hair', 0.8326570987701416),
-   (u'detached sleeves', 0.7448858618736267),
-   (u'skirt', 0.6780789494514465),
-   (u'necktie', 0.5608364939689636),
-   (u'aqua eyes', 0.5527772307395935)],
-  'rating': [(u'safe', 0.9785731434822083),
-   (u'questionable', 0.020535090938210487),
-   (u'explicit', 0.0006299660308286548)]}]
+[{'character': [('hatsune miku', 0.9999994039535522)],
+  'copyright': [('vocaloid', 0.9999999403953552)],
+  'general': [('thighhighs', 0.9956372976303101),
+              ('1girl', 0.9873461723327637),
+              ('twintails', 0.9812833666801453),
+              ('solo', 0.9632900953292847),
+              ('aqua hair', 0.9167952537536621),
+              ('long hair', 0.8817101716995239),
+              ('very long hair', 0.8326565027236938),
+              ('detached sleeves', 0.7448851466178894),
+              ('skirt', 0.6780778169631958),
+              ('necktie', 0.560835063457489),
+              ('aqua eyes', 0.5527758598327637)],
+  'rating': [('safe', 0.9785730242729187),
+             ('questionable', 0.02053523063659668),
+             ('explicit', 0.0006299614906311035)]}]
 ```
 These tags are classified into the following four categories:
 *general tags* representing general attributes included in an image,
@@ -92,7 +99,9 @@ import i2v
 from PIL import Image
 
 # In the feature vector extraction, you do not need to specify the tag.
-illust2vec = i2v.make_i2v_with_chainer("illust2vec_ver200.caffemodel")
+illust2vec = i2v.make_i2v_with_onnx("illust2vec_ver200.onnx")
+
+# illust2vec = i2v.make_i2v_with_chainer("illust2vec_ver200.caffemodel")
 
 # illust2vec = i2v.make_i2v_with_caffe(
 #     "illust2vec.prototxt", "illust2vec_ver200.caffemodel")
@@ -109,11 +118,12 @@ result_binary = illust2vec.extract_binary_feature([img])
 print("shape: {}, dtype: {}".format(result_binary.shape, result_binary.dtype))
 print(result_binary)
 ```
+
 The output is the following:
 ```
 shape: (1, 4096), dtype: float32
-[[ 7.47459459  3.68610668  0.5379501  ..., -0.14564702  2.71820974
-   7.31408596]]
+[[ 7.474596    3.6860986   0.537967   ... -0.14563629  2.7182112
+   7.3140917 ]]
 shape: (1, 512), dtype: uint8
 [[246 215  87 107 249 190 101  32 187  18 124  90  57 233 245 243 245  54
   229  47 188 147 161 149 149 232  59 217 117 112 243  78  78  39  71  45
